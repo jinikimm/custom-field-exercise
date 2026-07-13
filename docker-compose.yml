@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: custom_field_db
+      POSTGRES_USER: custom_field_user
+      POSTGRES_PASSWORD: custom_field_pass
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U custom_field_user -d custom_field_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build: .
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: custom_field_db
+      DB_USER: custom_field_user
+      DB_PASSWORD: custom_field_pass
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "flask db upgrade && python -m app.main"
+
+  test:
+    build: .
+    command: pytest tests/test_api.py --cov=app --cov-report=term-missing
+
