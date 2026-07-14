@@ -1,9 +1,10 @@
-import pytest
 import time
 from collections import OrderedDict
+
+import pytest
+
 from app import create_app
-from app.services import CustomFieldService
-from app.models import db, Fields, Records, RecordValues
+from app.models import db
 
 
 @pytest.fixture
@@ -15,7 +16,6 @@ def client():
 
 @pytest.fixture
 def sample_fields(client):
-    """Pre-created sample fields for testing"""
     fields = [
         {"key": "name", "type": "string", "options": None},
         {"key": "risk_score", "type": "float", "options": None},
