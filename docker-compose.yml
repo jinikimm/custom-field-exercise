@@ -32,5 +32,5 @@ services:
 
   test:
     build: .
-    command: pytest tests/test_api.py --cov=app --cov-report=term-missing
+    command: pytest tests/test_api.py tests/test_unit.py --cov=app --cov-report=term-missing
 
