@@ -1,5 +1,7 @@
 from flask import Blueprint, jsonify, request
+
 from app.services import CustomFieldService
+
 
 def register_api(app):
     bp = Blueprint("custom_field", __name__)
@@ -7,7 +9,8 @@ def register_api(app):
     api.add_url_rules(bp)
     app.register_blueprint(bp)
 
-class CustomFieldAPI():
+
+class CustomFieldAPI:
     def __init__(self, service):
         self.service = service
 
@@ -15,23 +18,23 @@ class CustomFieldAPI():
         data = request.get_json()
         field = self.service.create_field(data)
         return jsonify(field._to_dict()), 201
-    
+
     def get_fields(self):
         fields = self.service.get_fields()
         return jsonify([f._to_dict() for f in fields]), 200
 
     def create_record(self):
         data = request.get_json()
-        serialized_record = self.service.create_record(data.get('values', {}))
+        serialized_record = self.service.create_record(data.get("values", {}))
         return jsonify(serialized_record), 201
-    
+
     def get_records(self):
-        sort = request.args.get('sort')
-        filters = request.args.getlist('filter')
+        sort = request.args.get("sort")
+        filters = request.args.getlist("filter")
 
         try:
-            limit = int(request.args.get('limit', 50))
-            offset = int(request.args.get('offset', 0))
+            limit = int(request.args.get("limit", 50))
+            offset = int(request.args.get("offset", 0))
         except ValueError:
             return jsonify({"error": "limit and offset must be integers"}), 400
         if limit < 0 or offset < 0:

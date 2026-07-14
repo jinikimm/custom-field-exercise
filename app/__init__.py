@@ -12,16 +12,20 @@ def create_app(test_config=None):
         app.config.update(test_config)
 
     from .models import db
+
     db.init_app(app)
     Migrate(app, db)
 
     from .logger import init_logger
+
     init_logger(app)
 
     from .error_handler import error_handlers
+
     error_handlers(app)
 
     from .apis import register_api
+
     register_api(app)
 
     @app.get("/health")

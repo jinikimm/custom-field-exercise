@@ -102,7 +102,8 @@ class CustomFieldService:
 
         records_query = records_query.outerjoin(
             value_alias,
-            (value_alias.record_id == RecordValues.record_id) & (value_alias.field_id == field.field_id),
+            (value_alias.record_id == RecordValues.record_id)
+            & (value_alias.field_id == field.field_id),
         )
 
         col_name = TYPE_COLUMNS[field.type]
@@ -121,7 +122,17 @@ class CustomFieldService:
         return records_query
 
     def _parse_filter(self, filter_text):
-        key, operator, value = filter_text.split(":", 2)
+        try:
+            key, operator, value = filter_text.split(":", 2)
+        except ValueError:
+            raise ValidationError(
+                details=[
+                    {
+                        "field": "filter",
+                        "message": f"Filter '{filter_text}' is invalid format (not key:operator:value).",
+                    }
+                ]
+            )
 
         field = Fields.query.filter_by(key=key).first()
         if field is None:
@@ -195,7 +206,12 @@ class CustomFieldService:
             elif type == "float":
                 return float(value)
             elif type == "boolean" and isinstance(value, str):
-                return value.lower() == "true"
+                if value.lower() == "true":
+                    return True
+                elif value.lower() == "false":
+                    return False
+                else:
+                    raise ValueError(f"Value '{value}' is not valid for type '{type}'.")
             elif type == "date":
                 return datetime.strptime(value, "%Y-%m-%d").date()
             else:
@@ -204,7 +220,7 @@ class CustomFieldService:
             raise ValidationError(
                 details=[
                     {
-                        "field": f"type",
+                        "field": f"{type}",
                         "message": f"Value '{value}' is not valid for type '{type}'.",
                     }
                 ]
@@ -276,7 +292,7 @@ class CustomFieldService:
                     }
                 ]
             )
-        
+
     def _validate_record(self, key, value, field):
         if not field:
             raise ValidationError(

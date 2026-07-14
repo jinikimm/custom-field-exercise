@@ -21,11 +21,17 @@ class Fields(db.Model):
             "options": self.options,
         }
 
+
 class RecordValues(db.Model):
     __tablename__ = "record_values"
 
     record_id = db.Column(db.String(36), primary_key=True, nullable=False)
-    field_id = db.Column(db.String(36), db.ForeignKey("fields.field_id"), primary_key=True, nullable=False)
+    field_id = db.Column(
+        db.String(36),
+        db.ForeignKey("fields.field_id"),
+        primary_key=True,
+        nullable=False,
+    )
 
     string_value = db.Column(db.String(255), nullable=True)
     text_value = db.Column(db.Text, nullable=True)
