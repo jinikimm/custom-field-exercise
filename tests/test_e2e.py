@@ -1,7 +1,6 @@
 import json
 import os
 from urllib import error, request
-from uuid import uuid4
 
 import pytest
 
@@ -40,6 +39,7 @@ def base_url():
 
     return base_url
 
+
 def test_e2e_flow(base_url):
     # create fields
     fields = [
@@ -50,13 +50,13 @@ def test_e2e_flow(base_url):
     
     for field in fields:
         status, resp = _http_json("POST", base_url, "/fields", field)
-        assert status == 201, f"Failed to create field: {resp}"
-        assert resp["key"] == field["key"]
+        assert status == 201, f"Failed to create field '{field['key']}': status={status}, response={resp}"
+        assert resp["key"] == field["key"], f"Field key mismatch: expected={field['key']}, actual={resp.get('key')}"
     
     # get fields
     status, resp = _http_json("GET", base_url, "/fields")
-    assert status == 200
-    assert len(resp) >= 3
+    assert status == 200, f"Failed to get fields: status={status}, response={resp}"
+    assert len(resp) >= 3, f"Field count mismatch: expected_at_least=3, actual={len(resp)}, response={resp}"
     
     # create records
     records = [
@@ -67,21 +67,21 @@ def test_e2e_flow(base_url):
     
     for record in records:
         status, resp = _http_json("POST", base_url, "/records", record)
-        assert status == 201, f"Failed to create record: {resp}"
-        assert "record_id" in resp
+        assert status == 201, f"Failed to create record with values={record['values']}: status={status}, response={resp}"
+        assert "record_id" in resp, f"Missing record_id in response: values={record['values']}, response={resp}"
     
     # get records
     status, resp = _http_json("GET", base_url, "/records?sort=-risk_score")
-    assert status == 200
-    assert resp["total"] == 3
+    assert status == 200, f"Failed to get sorted records: status={status}, response={resp}"
+    assert resp["total"] == 3, f"Record total mismatch: expected=3, actual={resp.get('total')}, response={resp}"
     scores = [r["values"]["risk_score"] for r in resp["items"]]
-    assert scores == [9.0, 8.5, 6.5]
+    assert scores == [9.0, 8.5, 6.5], f"Score order mismatch: expected=[9.0, 8.5, 6.5], actual={scores}"
     
     status, resp = _http_json("GET", base_url, "/records?filter=risk_score:gte:7.0&filter=environment:in:production,staging")
-    assert status == 200
-    assert resp["total"] == 2
+    assert status == 200, f"Failed to get filtered records: status={status}, response={resp}"
+    assert resp["total"] == 2, f"Filtered record total mismatch: expected=2, actual={resp.get('total')}, response={resp}"
     
     status, resp = _http_json("GET", base_url, "/records?limit=2&offset=0")
-    assert status == 200
-    assert len(resp["items"]) == 2
-    assert resp["total"] == 3
+    assert status == 200, f"Failed to get paginated records: status={status}, response={resp}"
+    assert len(resp["items"]) == 2, f"Paginated item count mismatch: expected=2, actual={len(resp['items'])}, response={resp}"
+    assert resp["total"] == 3, f"Paginated record total mismatch: expected=3, actual={resp.get('total')}, response={resp}"

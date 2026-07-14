@@ -39,9 +39,9 @@ def service_no_db():
 def test_create_field_success(service, key, type, options):
     field = service.create_field({"key": key, "type": type, "options": options})
 
-    assert field.key == key
-    assert field.type == type
-    assert field.options == options
+    assert field.key == key, f"Expected key {key}, got {field.key}"
+    assert field.type == type, f"Expected type {type}, got {field.type}"
+    assert field.options == options, f"Expected options {options}, got {field.options}"
 
 @pytest.mark.parametrize(
     ("key", "type", "options"),
@@ -68,11 +68,11 @@ def test_get_fields_success(service):
 
     fields = service.get_fields()
 
-    assert len(fields) == 2
+    assert len(fields) == 2, f"Expected 2 fields, got {len(fields)}"
     assert {field.key for field in fields} == {"name", "age"}
 
 def test_get_fields_empty(service):
-    assert service.get_fields() == []
+    assert service.get_fields() == [], f"Expected empty list, got {service.get_fields()}"
 
 
 # create_record tests
@@ -99,9 +99,10 @@ def test_create_record_success(service, record_data):
 
     result = service.create_record(record_data)
 
-    assert result["record_id"]
+    assert result["record_id"], f"Expected record_id to exist, got {result}"
     for key, value in record_data.items():
-        assert result["values"][key] == (30 if key == "age" else value)
+        expected = 30 if key == "age" else value
+        assert result["values"][key] == expected, f"Expected {key}={expected}, got {result['values'][key]}"
 
 @pytest.mark.parametrize(
     "record_data",
@@ -154,10 +155,10 @@ def test_get_records_success(service, offset, limit, sort, filters, expected_tot
     )
     scores = [record["values"]["score"] for record in result["items"]]
 
-    assert result["total"] == expected_total
-    assert result["limit"] == (limit if limit is not None else 10)
-    assert result["offset"] == (offset if offset is not None else 0)
-    assert scores == expected_scores
+    assert result["total"] == expected_total, f"Expected total={expected_total}, got {result['total']}"
+    assert result["limit"] == (limit if limit is not None else 10), f"Expected limit={limit if limit is not None else 10}, got {result['limit']}"
+    assert result["offset"] == (offset if offset is not None else 0), f"Expected offset={offset if offset is not None else 0}, got {result['offset']}"
+    assert scores == expected_scores, f"Expected scores={expected_scores}, got {scores}"
 
 @pytest.mark.parametrize(
     ("sort", "filters"),
@@ -229,7 +230,7 @@ def test_validate_record_success(service, field_type, value, expected):
 
     result = service._validate_record("test_field", value, field)
 
-    assert result == expected
+    assert result == expected, f"Expected {expected} for {field_type}, got {result}"
 
 @pytest.mark.parametrize(
     ("field_type", "value"),
@@ -272,9 +273,9 @@ def test_parse_filter_success(service, filter_str, expected):
 
     key, operator, value = service._parse_filter(filter_str)
 
-    assert key == expected[0]
-    assert operator == expected[1]
-    assert value == expected[2]
+    assert key == expected[0], f"Expected key {expected[0]}, got {key}"
+    assert operator == expected[1], f"Expected operator {expected[1]}, got {operator}"
+    assert value == expected[2], f"Expected value {expected[2]}, got {value}"
 
 @pytest.mark.parametrize(
     ("filter_str",),
@@ -309,8 +310,8 @@ def test_parse_sort_success(service, sort_str, expected_key, expected_descending
 
     key, descending = service._parse_sort(sort_str)
 
-    assert key == expected_key
-    assert descending == expected_descending
+    assert key == expected_key, f"Expected key {expected_key}, got {key}"
+    assert descending == expected_descending, f"Expected descending={expected_descending}, got {descending}"
 
 @pytest.mark.parametrize(
     ("sort_str",),
@@ -343,7 +344,7 @@ def test_condition_success(service, field_type, operator, value):
     value_alias = aliased(RecordValues)
     condition = service._condition(value_alias, field_type, operator, value)
 
-    assert condition is not None
+    assert condition is not None, f"Expected condition to be not None for {field_type} {operator} {value}"
 
 @pytest.mark.parametrize(
     ("field_type", "operator", "value"),
@@ -378,9 +379,9 @@ def test_convert_type_success(service_no_db, field_type, raw_value, expected):
     result = service_no_db._convert_type(field_type, raw_value)
 
     if field_type == "float":
-        assert result == pytest.approx(expected)
+        assert result == pytest.approx(expected), f"Expected approximately {expected} for {field_type}, got {result}"
     else:
-        assert result == expected
+        assert result == expected, f"Expected {expected} for {field_type}, got {result}"
 
 @pytest.mark.parametrize(
     ("field_type", "raw_value"),
@@ -417,10 +418,10 @@ def test_serialize_record_success(service, values, expected_values):
     created = service.create_record(values)
     result = service._serialize_record(created["record_id"])
 
-    assert result["record_id"] == created["record_id"]
-    assert result["values"] == expected_values["values"]
+    assert result["record_id"] == created["record_id"], f"Expected record_id {created['record_id']}, got {result['record_id']}"
+    assert result["values"] == expected_values["values"], f"Expected values {expected_values['values']}, got {result['values']}"
 
 def test_serialize_record_nonexistent(service):
     result = service._serialize_record("nonexistent-record")
 
-    assert result == {"record_id": "nonexistent-record", "values": {}}
+    assert result == {"record_id": "nonexistent-record", "values": {}}, f"Expected empty values dict for nonexistent record, got {result}"
