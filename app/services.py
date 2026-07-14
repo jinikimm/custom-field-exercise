@@ -66,7 +66,7 @@ class CustomFieldService:
             records_query = self._sort_records(records_query, sort)
 
         total = records_query.count()
-        records = records_query.offset(offset).limit(limit).all()
+        records = records_query.order_by(RecordValues.record_id.asc()).offset(offset).limit(limit).all()
 
         return {
             "items": [self._serialize_record(record.record_id) for record in records],
