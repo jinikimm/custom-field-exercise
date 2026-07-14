@@ -226,6 +226,22 @@ def test_get_records_200_with_pagination(client, sample_fields):
     assert resp.json["limit"] == 2
     assert resp.json["offset"] == 0
 
+def test_get_records_400_invalid_limit_offset(client, sample_fields):
+    resp = client.get("/records?limit=-1")
+    assert resp.status_code == 400
+    
+    resp = client.get("/records?offset=-5")
+    assert resp.status_code == 400
+    
+    resp = client.get("/records?limit=abc")
+    assert resp.status_code == 400
+    
+    resp = client.get("/records?offset=xyz")
+    assert resp.status_code == 400
+    
+    resp = client.get("/records?limit=101")
+    assert resp.status_code == 400
+
 def test_get_records_400_nonexistent_field_in_filter(client, sample_fields):
     resp = client.get("/records?filter=nonexistent_field:eq:value")
     assert resp.status_code == 400
